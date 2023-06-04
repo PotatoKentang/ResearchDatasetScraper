@@ -119,40 +119,55 @@ const foods = [
   'Fried-Meatballs',
   'Fried-Mushroom-Balls',
 ];
+//each page there are 100 foods
 
+
+const pages_to_scrape = 1;
 for (const food of foods)
 {
-    await page.goto(`https://www.istockphoto.com/id/foto-foto/${food}`, {waitUntil: "domcontentloaded"});
+    if(pages_to_scrape == 0) return;
+    for(let page = 1; page <= pages_to_scrape; page++)
+    {
+      if(page>1)
+      {
+        await page.goto(`https://www.istockphoto.com/id/foto-foto/${food}&page=${page}`, {waitUntil: "domcontentloaded"});
+      }
+      else
+      {
+        await page.goto(`https://www.istockphoto.com/id/foto-foto/${food}`, {waitUntil: "domcontentloaded"});
+      }
 
-    // Extract image URLs from the search results page
-    const imageUrls = await page.$$eval('img', (images) =>
-      images.map((img) => img.src)
-    );
+      // Extract image URLs from the search results page
+      const imageUrls = await page.$$eval('img', (images) =>
+        images.map((img) => img.src)
+      );
 
-    // Create a directory to save the downloaded images
-    const directory = `./DatasetScraper/downloaded_images/${food}`;
-    fs.mkdirSync(directory, { recursive: true });
+      // Create a directory to save the downloaded images
+      const directory = `./DatasetScraper/downloaded_images/${food}`;
+      fs.mkdirSync(directory, { recursive: true });
 
-    // Download and save the images
-    for (let i = 0; i < imageUrls.length; i++) {
-      const imageUrl = imageUrls[i];
-      const imageFileName = `image_${i}.jpg`;
-      const imagePath = `${directory}/${imageFileName}`;
+      // Download and save the images
+      for (let i = 0; i < imageUrls.length; i++) {
+        const imageUrl = imageUrls[i];
+        const imageFileName = `image_${i}.jpg`;
+        const imagePath = `${directory}/${imageFileName}`;
 
-      const imageResponse = await axios({
-        method: 'GET',
-        url: imageUrl,
-        responseType: 'stream',
-      });
+        const imageResponse = await axios({
+          method: 'GET',
+          url: imageUrl,
+          responseType: 'stream',
+        });
 
-      const imageStream = imageResponse.data;
-      const imageFile = fs.createWriteStream(imagePath);
-      imageStream.pipe(imageFile);
+        const imageStream = imageResponse.data;
+        const imageFile = fs.createWriteStream(imagePath);
+        imageStream.pipe(imageFile);
 
-      console.log(`Downloading ${imageFileName}...`);
+        console.log(`Downloading ${imageFileName}...`);
+      }
+
+      console.log('Images downloaded successfully!');
     }
 
-    console.log('Images downloaded successfully!');
-  }
+    }
   await browser.close();
 })();
