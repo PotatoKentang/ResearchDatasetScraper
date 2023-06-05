@@ -6,7 +6,7 @@ const axios = require('axios');
   const browser = await puppeteer.launch({
     headless: false,
   });
-  const page = await browser.newPage();
+const browserPage = await browser.newPage();
 
 const foods = [
   'Fried-Rice',
@@ -125,25 +125,19 @@ const foods = [
 const pages_to_scrape = 1;
 for (const food of foods)
 {
-    if(pages_to_scrape == 0) return;
+    if(pages_to_scrape == 0) {return;}
     for(let page = 1; page <= pages_to_scrape; page++)
     {
-      if(page>1)
-      {
-        await page.goto(`https://www.istockphoto.com/id/foto-foto/${food}&page=${page}`, {waitUntil: "domcontentloaded"});
-      }
-      else
-      {
-        await page.goto(`https://www.istockphoto.com/id/foto-foto/${food}`, {waitUntil: "domcontentloaded"});
-      }
+
+      await browserPage.goto(`https://www.istockphoto.com/id/foto-foto/${food}&page=${page}`, {waitUntil: "domcontentloaded"});
 
       // Extract image URLs from the search results page
-      const imageUrls = await page.$$eval('img', (images) =>
+      const imageUrls = await browserPage.$$eval('img', (images) =>
         images.map((img) => img.src)
       );
 
       // Create a directory to save the downloaded images
-      const directory = `./DatasetScraper/downloaded_images/${food}`;
+      const directory = `./downloaded_images/${food}`;
       fs.mkdirSync(directory, { recursive: true });
 
       // Download and save the images
